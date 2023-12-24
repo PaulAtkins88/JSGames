@@ -1,0 +1,81 @@
+body {
+  background-color: #000;
+  color: #fff;
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+#game-title {
+  font-size: 2em;
+  color: #4caf50;
+  text-align: center;
+}
+
+#game-subtitle {
+  font-size: 1.2em;
+  color: #fff;
+  text-align: center;
+}
+
+#prompt-count {
+  font-size: 1em;
+  color: #fff;
+  text-align: center;
+}
+
+#game-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh; /* take up full viewport height */
+  justify-content: space-between;
+}
+#game-board {
+  flex-grow: 1; /* take up remaining space */
+  border: 3px solid white; /* your border */
+  box-sizing: border-box; /* new property */
+}
+#start-button {
+  background-color: #4caf50; /* Green */
+  border: none;
+  color: white;
+  padding: 15px 32px;
+  text-align: center;
+  text-decoration: none;
+  display: block;
+  font-size: 16px;
+  margin: 20px auto;
+  transition-duration: 0.4s;
+  cursor: pointer;
+}
+
+#start-button:disabled {
+  background-color: #ccc;
+}
+
+#start-button:hover {
+  background-color: #45a049;
+}
+
+#score-table {
+  color: #fff;
+  margin: 20px auto;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+#score-table th,
+#score-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+#score-table th {
+  background-color: #4caf50;
+  color: white;
+}
