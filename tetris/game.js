@@ -14,6 +14,10 @@ const ctx = canvas.getContext('2d');
 const nextTetrominoCanvas = document.getElementById('nextTetrominoCanvas');
 const nextTetrominoCtx = nextTetrominoCanvas.getContext('2d');
 
+const audio = document.getElementById('theme-song');
+const clearLineSound = new Audio('assets/sound/clearLine.wav');
+const clearLineFourSound = new Audio('assets/sound/clearLineFour.wav');
+
 // #endregion
 
 // #region game variables
@@ -23,6 +27,7 @@ let lastTime = Date.now();
 const updateInterval = 1000;
 let accumulatedTime = 0;
 let score = 0;
+let bestScore = localStorage.getItem('bestScore') || 0;
 
 let grid = createGrid();
 
@@ -134,6 +139,7 @@ function resetGame() {
   document.getElementById('gameOverScreen').style.display = 'none';
 
   score = 0;
+  document.getElementById('score').textContent = 'Score: ' + score;
   grid = createGrid(GRID_WIDTH, GRID_HEIGHT);
   gameStarted = true;
   gamePaused = false;
@@ -182,6 +188,7 @@ function gameLoop() {
         // If a new Tetromino can't be spawned, the game is over
         document.getElementById('gameOverOverlay').style.display = 'block';
         document.getElementById('gameOverScreen').style.display = 'block';
+        gameStarted = false;
         return;
       }
 
@@ -190,8 +197,21 @@ function gameLoop() {
       // Increase the score based on the number of cleared lines
       if (numberOfLinesCleared > 0) {
         score += 50 * 2 ** (numberOfLinesCleared - 1);
+        // If the current score is higher than the highest score, update the highest score
+        if (score > bestScore) {
+          bestScore = score;
+          localStorage.setItem('bestScore', bestScore);
+        }
         // Update the score display
         document.getElementById('score').textContent = 'Score: ' + score;
+        document.getElementById('bestScore').textContent = 'Best: ' + bestScore;
+
+        // if 4 lines or more are cleared, play the 4 line clear sound, else play the normal clear sound
+        if (numberOfLinesCleared >= 4) {
+          clearLineFourSound.play();
+        } else {
+          clearLineSound.play();
+        }
       }
     }
 
@@ -326,6 +346,24 @@ canvas.addEventListener('touchend', (event) => {
   }
 });
 
+document.getElementById('speaker-on').addEventListener('click', function () {
+  audio.pause();
+  this.style.display = 'none';
+  document.getElementById('speaker-off').style.display = 'inline-block';
+});
+
+document.getElementById('speaker-off').addEventListener('click', function () {
+  audio.play();
+  this.style.display = 'none';
+  document.getElementById('speaker-on').style.display = 'inline-block';
+});
 // #endregion
+
+// #region on load
+window.onload = function () {
+  audio.play();
+};
+// #endregion
+
 
 render();
