@@ -275,6 +275,57 @@ document.getElementById('pauseButton').addEventListener('click', () => {
 
 document.getElementById('resetButton').addEventListener('click', resetGame);
 
+let touchStartX = 0;
+let touchStartY = 0;
+
+canvas.addEventListener('touchstart', (event) => {
+  touchStartX = event.touches[0].clientX;
+  touchStartY = event.touches[0].clientY;
+});
+
+canvas.addEventListener('touchend', (event) => {
+  const touchEndX = event.changedTouches[0].clientX;
+  const touchEndY = event.changedTouches[0].clientY;
+
+  const diffX = touchStartX - touchEndX;
+  const diffY = touchStartY - touchEndY;
+
+  if (Math.abs(diffX) > Math.abs(diffY)) {
+    // Horizontal swipe
+    if (diffX > 0) {
+      // Swipe left
+      if (
+        canMoveTo(grid, tetrominoRow, tetrominoCol - 1, currentTetrominoShape)
+      ) {
+        tetrominoCol--;
+      }
+    } else {
+      // Swipe right
+      if (
+        canMoveTo(grid, tetrominoRow, tetrominoCol + 1, currentTetrominoShape)
+      ) {
+        tetrominoCol++;
+      }
+    }
+  } else {
+    // Vertical swipe
+    if (diffY > 0) {
+      // Swipe up
+      const rotatedTetromino = rotate(currentTetrominoShape);
+      if (canMoveTo(grid, tetrominoRow, tetrominoCol, rotatedTetromino)) {
+        currentTetrominoShape = rotatedTetromino;
+      }
+    } else {
+      // Swipe down
+      if (
+        canMoveTo(grid, tetrominoRow + 1, tetrominoCol, currentTetrominoShape)
+      ) {
+        tetrominoRow++;
+      }
+    }
+  }
+});
+
 // #endregion
 
 render();

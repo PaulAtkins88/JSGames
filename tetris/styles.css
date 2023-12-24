@@ -135,6 +135,9 @@ body {
 }
 
 @media (min-width: 767px) {
+  body {
+    overflow: hidden;
+  }
   #nextPiece {
     width: 80%;
     height: 80%;
@@ -153,5 +156,41 @@ body {
   }
   #score {
     font-size: 1em;
+  }
+}
+
+@media (max-width: 767px) {
+  body {
+    overflow: auto; /* Allow scrolling on small screens */
+  }
+
+  #gameSection {
+    grid-template-columns: 1fr; /* Stack the game and the controls vertically */
+    grid-template-rows: auto auto;
+  }
+
+  #gameCanvas {
+    grid-row: 1; /* Put the game above the controls */
+    height: 50vh; /* Adjust as needed */
+  }
+
+  #rightColumn {
+    grid-row: 2; /* Put the controls below the game */
+    height: 50vh; /* Adjust as needed */
+  }
+
+  #nextPiece {
+    width: 100%; /* Adjust as needed */
+    height: 50%; /* Adjust as needed */
+    font-size: 0.5em; /* Make the text smaller */
+  }
+
+  #nextTetrominoCanvas {
+    width: 80%; /* Adjust as needed */
+    height: 80%; /* Adjust as needed */
+  }
+
+  #score {
+    font-size: 0.75em; /* Make the text smaller */
   }
 }
