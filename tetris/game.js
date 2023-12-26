@@ -1,3 +1,4 @@
+import { getHighScores, saveHighScores } from './datastore.js';
 import {
   GRID_HEIGHT,
   GRID_WIDTH,
@@ -151,6 +152,20 @@ function resetGame() {
   requestAnimationFrame(gameLoop);
 }
 
+async function startGame() {
+  const highScores = await getHighScores();
+  bestScore = highScores;
+  document.getElementById('bestScore').textContent = 'Best: ' + highScores;
+  resetGame();
+}
+
+async function endGame() {
+  const highScores = await getHighScores();
+  if (score > highScores) {
+    saveHighScores(score);
+  }
+}
+
 /**
  * The main game loop that updates the game state, renders the game, and continues the loop.
  */
@@ -186,6 +201,7 @@ function gameLoop() {
       // If the Tetromino can't move down, spawn a new one
       if (!spawnTetromino()) {
         // If a new Tetromino can't be spawned, the game is over
+        endGame();
         document.getElementById('gameOverOverlay').style.display = 'block';
         document.getElementById('gameOverScreen').style.display = 'block';
         gameStarted = false;
@@ -200,7 +216,6 @@ function gameLoop() {
         // If the current score is higher than the highest score, update the highest score
         if (score > bestScore) {
           bestScore = score;
-          localStorage.setItem('bestScore', bestScore);
         }
         // Update the score display
         document.getElementById('score').textContent = 'Score: ' + score;
@@ -278,6 +293,7 @@ document.getElementById('restartButton').addEventListener('click', resetGame);
 document.getElementById('startButton').addEventListener('click', () => {
   // Start the game loop
   if (!gameStarted) {
+    startGame();
     gameStarted = true;
     currentTetromino = Math.floor(Math.random() * TETROMINOES.length);
     currentTetrominoShape = TETROMINOES[currentTetromino].shape;
@@ -364,6 +380,5 @@ window.onload = function () {
   audio.play();
 };
 // #endregion
-
 
 render();
