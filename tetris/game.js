@@ -8,7 +8,7 @@ import {
 } from './grid.js';
 import { TETROMINOES, rotate } from './tetrominoes.js';
 
-//#region canvas
+// #region canvas
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
@@ -21,16 +21,30 @@ const clearLineFourSound = new Audio('assets/sound/clearLineFour.wav');
 
 // #endregion
 
+// #region document elements
+// Get the modal
+let modal = document.getElementById('highScoresModal');
+
+// Get the button that opens the modal
+let btn = document.getElementById('highScoresButton');
+
+// Get the <span> element that closes the modal
+let span = document.getElementsByClassName('close')[0];
+// #endregion
+
 // #region game variables
 let gameStarted = false;
 let gamePaused = false;
 let lastTime = Date.now();
-const updateInterval = 1000;
+let updateInterval = 1000;
 let accumulatedTime = 0;
 let score = 0;
 let bestScore = localStorage.getItem('bestScore') || 0;
 
 let grid = createGrid();
+
+let baseSpeed = 1000; // Blocks fall every 1000 milliseconds = 1 second
+let speedFactor = 0.2; // The speed increases by 1 millisecond for each point
 
 let currentTetromino;
 let currentTetrominoShape = [];
@@ -148,22 +162,47 @@ function resetGame() {
   currentTetrominoShape = TETROMINOES[currentTetromino].shape;
   tetrominoRow = 0;
   tetrominoCol = Math.floor(GRID_WIDTH / 2);
+  // spawnTetromino();
+  // requestAnimationFrame(gameLoop);
+}
+
+// tetris/game.js
+
+async function startGame() {
+  resetGame();
+  // get the high scores from S3
+  const highScores = await getHighScores();
+  // Update the score display
+  document.getElementById('bestScore').textContent =
+    'Best: ' + Math.max(...Object.values(highScores));
+  gameStarted = true;
+  currentTetromino = Math.floor(Math.random() * TETROMINOES.length);
+  currentTetrominoShape = TETROMINOES[currentTetromino].shape;
   spawnTetromino();
   requestAnimationFrame(gameLoop);
 }
 
-async function startGame() {
-  const highScores = await getHighScores();
-  bestScore = highScores;
-  document.getElementById('bestScore').textContent = 'Best: ' + highScores;
-  resetGame();
-}
-
 async function endGame() {
   const highScores = await getHighScores();
-  if (score > highScores) {
-    saveHighScores(score);
+  if (score > Math.max(...Object.values(highScores))) {
+    const playerName = prompt('You got a high score! Please enter your name:');
+    highScores[playerName] = score;
+    saveHighScores(highScores);
   }
+}
+
+async function showHighScores() {
+  const highScores = await getHighScores();
+  const highScoresTable = document.getElementById('highScoresTable');
+  highScoresTable.innerHTML = '';
+  for (const [player, score] of Object.entries(highScores)) {
+    const row = highScoresTable.insertRow();
+    const cell1 = row.insertCell(0);
+    const cell2 = row.insertCell(1);
+    cell1.textContent = player;
+    cell2.textContent = score;
+  }
+  modal.style.display = 'block';
 }
 
 /**
@@ -176,6 +215,12 @@ function gameLoop() {
   if (gamePaused) {
     return;
   }
+  let speed = baseSpeed - score * speedFactor;
+  if (speed < 100) {
+    speed = 100;
+  }
+
+  updateInterval = speed;
   const now = Date.now();
   const deltaTime = now - lastTime;
   lastTime = now;
@@ -240,7 +285,12 @@ function gameLoop() {
   drawNextTetromino();
 
   // Continue the game loop
-  requestAnimationFrame(gameLoop);
+  // requestAnimationFrame(gameLoop);
+  if (!gamePaused || !gameStarted) {
+    requestAnimationFrame(gameLoop);
+  } else {
+    return;
+  }
 }
 
 // #endregion
@@ -290,17 +340,7 @@ window.addEventListener('keydown', (event) => {
 
 document.getElementById('restartButton').addEventListener('click', resetGame);
 
-document.getElementById('startButton').addEventListener('click', () => {
-  // Start the game loop
-  if (!gameStarted) {
-    startGame();
-    gameStarted = true;
-    currentTetromino = Math.floor(Math.random() * TETROMINOES.length);
-    currentTetrominoShape = TETROMINOES[currentTetromino].shape;
-    spawnTetromino();
-    requestAnimationFrame(gameLoop);
-  }
-});
+document.getElementById('startButton').addEventListener('click', startGame);
 
 document.getElementById('pauseButton').addEventListener('click', () => {
   gamePaused = !gamePaused;
@@ -310,7 +350,13 @@ document.getElementById('pauseButton').addEventListener('click', () => {
 });
 
 document.getElementById('resetButton').addEventListener('click', resetGame);
+document.getElementById('highScoresButton').addEventListener('click', () => {
+  showHighScores();
+});
 
+document.getElementById('closeModalButton').addEventListener('click', () => {
+  modal.style.display = 'none';
+});
 let touchStartX = 0;
 let touchStartY = 0;
 
@@ -380,5 +426,3 @@ window.onload = function () {
   audio.play();
 };
 // #endregion
-
-render();

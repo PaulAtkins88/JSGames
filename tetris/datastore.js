@@ -15,6 +15,8 @@ const s3 = new S3({
   params: { Bucket: 'atkins-tetris-game' }
 });
 
+// tetris/datastore.js
+
 export async function saveHighScores(highScores) {
   const params = {
     Key: 'highScores.json',
@@ -22,11 +24,9 @@ export async function saveHighScores(highScores) {
   };
   let promise = s3.putObject(params).promise();
   promise
-    .then(() => console.log('Saved high scores to S3'))
+    .then(() => console.log('Saved high scores'))
     .catch((err) => console.error(err));
 }
-
-// tetris/datastore.js
 
 export async function getHighScores() {
   console.log('Getting high scores from S3');
@@ -34,10 +34,18 @@ export async function getHighScores() {
     Key: 'highScores.json'
   };
   let promise = s3.getObject(params).promise();
-  promise
-    .then(() => console.log('Got high scores from S3'))
-    .catch((err) => console.error(err));
-  const highScores = JSON.parse((await promise).Body.toString()).highScores;
-  console.log(highScores);
+
+  const highScores = promise
+    .then((data) => {
+      console.log('Got high scores from S3');
+      const decoder = new TextDecoder('utf-8');
+      const highScores = JSON.parse(decoder.decode(data.Body)).highScores;
+      return highScores;
+    })
+    .catch((err) => {
+      console.error(err);
+      return null;
+    });
+
   return highScores;
 }
